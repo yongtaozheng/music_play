@@ -1,0 +1,8 @@
+
+{
+ host: '47.113.84.128',
+ user: 'root',
+ password : 'root',
+ database : 'music',
+ port: '3306',
+}

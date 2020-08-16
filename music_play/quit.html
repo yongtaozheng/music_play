@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+	</head>
+	<script type="text/javascript" src="test.json"></script>
+	<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+	<body>
+		<div id="app">
+			<h1>已退出登录</h1>
+			<a href="javascript:;" @click="backToLog()">返回登录</a>
+		</div>
+	<script>
+		var mydata = JSON.parse(test);
+		console.log(mydata)
+		var app = new Vue({
+			el: "#app",
+			data: {
+				
+			},
+			methods:{
+				backToLog(){
+					window.location.href="login.html";
+				}
+				},
+			})
+	</script>
+	</body>
+	
+</html>

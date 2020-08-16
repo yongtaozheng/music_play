@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>登录</title>
+	</head>
+	<link rel="stylesheet" type="text/css" href="./css/login.css"/>
+	<body>
+		<div id="app">
+			<div class="wrap">
+				<!-- <form action="http://localhost:3306/regist">	 -->
+				<h1 v-show="state==0">Login</h1>	
+				<h1 v-show="state==1">Regist</h1>	
+				<h1 v-show="state==2">Find</h1>
+				<div class="row">
+					<label class="tips" v-text="tips"></label>		
+					<br>	
+				</div>	
+				<div class="row">
+					<label for="">输入账号:</label>	
+					<input class="input1" maxlength="15" v-model="username" name="user" type="text" placeholder="请输入账号">		
+					<br>	
+				</div>
+				<div class="row" v-show="state!=2">
+					<label for="">输入密码:</label>		
+					<input class="input1" maxlength="15" v-model="password" name="psw" type="password" placeholder="请输入密码">		
+					<br>
+				</div>
+				<div class="row" v-show="state==1">
+					<label for="">重复密码:</label>	
+					<input class="input1" maxlength="15" v-model="password2" name="pswa" type="password" placeholder="请重复密码">		
+					<br>
+				</div>
+				<div class="row" v-show="state!=0">
+					<label for="">输入邮箱:</label>	
+					<input class="input1" v-model="mail" name="mail" type="text" placeholder="请输入邮箱">		
+					<br>
+				</div>
+				<div class="row" v-show="state!=0">
+					<label for="">验证码:</label>	
+					<input class="input1" v-model="verCode" name="verCode" type="text" placeholder="验证码">
+					<br />
+					<a href="javascript:;" class="btn1" @click="sendMail()" >获取验证码</a>		
+					<br>
+				</div>
+				<div class="row">
+					<!-- <input type="submit" value="注册"> -->
+					<!-- </form> -->
+					<a href="javascript:;" class="btn1" @click="findback()" >找回密码</a>
+					<button class="btn1" type="button" @click="reg()">注册</button>
+					<button class="btn1" type="button" @click="log()">登录</button>
+				</div>
+			</div>
+		</div>
+		<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+		<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+		<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+		<script src="js/md5.js"></script>
+		<script>
+			var app = new Vue({
+				el: "#app",
+				data: {
+					username:"zyt",
+					password:"123",
+					password2:"",
+					tips:"",
+					mail:"",
+					verCode:"",
+					localhost:'47.113.84.128',
+					state:0//0:登录界面、1:注册界面、2:找回密码界面
+				},
+				methods:{
+					//检查登录信息
+					aa:function(){
+						var datas;
+						//获取数据库数据
+						$.ajax({
+							type:'get',
+							url:'http://'+this.localhost+':3306/login',
+							async : false,
+							data:{name:this.username,pass:nemoMD5(this.password),sql:'cz'},
+							success:function(data){
+								datas = data;
+							},
+							error:function(){
+							console.log('error');
+							}
+						})
+						return datas;
+					},
+					//确认当前状态
+					ff:function(road,sql,m){
+						var datas;
+						//获取数据库数据
+						$.ajax({
+							type:'get',
+							url:'http://'+this.localhost+':3306/'+road,
+							async : false,
+							data:{sql:sql,mail:m},
+							success:function(data){
+								datas = data;
+							},
+							error:function(){
+							console.log('error');
+							}
+						})
+						return datas;
+					},
+					//检查注册信息
+					checkcode:function(){
+						console.log("username:"+this.username);
+						let pwd = nemoMD5(this.password);
+						console.log('this.password',this.password);
+						console.log('pwd',pwd);
+						$.ajax({
+							type:'get',
+							url:'http://'+this.localhost+':3306/login',
+							async : false,
+							data:{name:this.username,pass:pwd,mail:this.mail,sql:'cr'},
+							// data:{name:this.username,pass:this.password,sql:'cz'},
+							success:function(data){
+								// console.log('data');
+								console.log(data);
+								// return data;
+								datas = data;
+							},
+							error:function(){
+							console.log('error');
+							}
+						})
+					},
+					//登录账号
+					log:function(){
+						this.tips = "";
+						if(this.state != 0){
+							this.state = 0;
+						}else{
+							this.tips = "正在登录";
+							var datas = this.aa();
+							setTimeout(()=>{
+								datas = this.ff('login','ff');
+								console.log("ff",datas);
+								sessionStorage.setItem('userid',datas.data[0].id); 
+								sessionStorage.setItem('username',datas.data[0].username);
+								// sessionStorage.setItem('userpassword',datas.data[0].password);
+								if(datas.data.length>0){
+									window.location.href="index.html";
+								}
+							},1100)
+						}
+					},
+					//注册账号
+					reg:function(){
+						this.tips = "";
+						console.log("验证码：",this.verCode1);
+						if(this.state != 1){
+							this.state = 1;
+						}else{
+							if(this.username=="" || this.mail == "" || this.password == "" || this.password2 == ""){
+								this.tips = "请输入完整信息";
+							}else if(this.password != this.password2){
+								this.tips = "两次输入密码不一致";
+							}else if(this.verCode == ""){
+								this.tips = "请输入验证码";
+							}else if(this.verCode != this.verCode1){
+								this.tips = "验证码错误";
+							}else{
+								var datas = this.checkcode();
+								setTimeout(()=>{
+									datas = this.ff('login','ff');
+									console.log("ff",datas);
+									if(datas.data == "该用户已存在")
+										this.tips = "该账号已被注册";
+									else
+										this.tips = "注册成功，请前往登录";
+								},1100)
+							}
+						}
+					},
+					//找回密码
+					findback:function(){
+						if(this.state != 2){
+							this.state = 2;
+							this.tips = "该功能正在开发中……"
+						}else{
+							
+						}
+						// this.sendMail();
+					},
+					//发送邮件
+					sendMail:function(flag){
+						var ans = this.checkMail();
+						console.log(ans);
+						if(ans == 1){
+							var datas = this.ff('mail',1,this.mail);
+							console.log("dd",datas);
+							setTimeout(()=>{
+								datas = this.ff('mail','ff');
+								console.log("ff",datas);
+								this.verCode1 = datas.verCode;
+								if(datas.data == 1)
+									this.tips = "验证码已发送到您的邮箱，请尽快查看";
+								else
+									this.tips = "验证码发送失败";
+							},1100)
+						}
+					},
+					//校验邮箱
+					checkMail(){
+						var reg = /^[0-9a-zA-Z_.-]+[@][0-9a-zA-Z_.-]+([.][a-zA-Z]+){1,2}$/;
+						var ans = 0;
+						if (reg.test(this.mail)) {
+						      this.tips = "验证码已发送到您的邮箱，请尽快查看";
+							  ans = 1;
+						    } else {
+						      this.tips = "请输入正确的邮箱";
+						    }
+						return ans;
+					}
+				}
+			})
+			
+		</script>
+	</body>
+</html>	
